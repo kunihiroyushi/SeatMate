@@ -1,102 +1,383 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0f172a"><meta name="apple-mobile-web-app-capable" content="yes">
-<title>SeatMate</title><link rel="manifest" href="manifest.webmanifest">
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>SeatMate</title>
+<link rel="manifest" href="manifest.webmanifest">
 <style>
-:root{--bg:#f6f7f9;--card:#fff;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--soft:#f1f5f9;--accent:#0f172a;--blue:#eff6ff}
+:root{--bg:#f6f7f9;--card:#fff;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--soft:#f1f5f9;--accent:#0f172a;--blue:#eff6ff;--green:#ecfdf5;--orange:#fff7ed;--red:#fef2f2}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-.app{max-width:560px;margin:auto;padding:18px 16px 96px;min-height:100vh}h1{font-size:28px;margin:0}h2{font-size:18px;margin:0 0 12px}
-.small{font-size:12px;color:var(--muted)}.muted{color:var(--muted)}.card{background:#fff;border-radius:22px;padding:18px;box-shadow:0 6px 28px rgba(15,23,42,.06);margin-bottom:14px}
+.app{max-width:560px;margin:auto;min-height:100vh;padding:18px 16px 96px}
+h1{font-size:28px;margin:0}h2{font-size:18px;margin:0 0 12px}.small{font-size:12px;color:var(--muted)}.muted{color:var(--muted)}
+.card{background:#fff;border-radius:22px;padding:18px;box-shadow:0 6px 28px rgba(15,23,42,.06);margin-bottom:14px}
 .row{display:flex;gap:10px;align-items:center}.grow{flex:1}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.btn{width:100%;border:0;border-radius:14px;padding:14px 16px;font-size:15px;font-weight:700;background:var(--soft);color:var(--ink)}.btn.primary{background:var(--accent);color:#fff}.btn.tiny{width:auto;padding:8px 10px;font-size:12px}.btn.danger{background:#fef2f2;color:#991b1b}
-input{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px 13px;font-size:15px;background:#fff}label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}.field{margin-bottom:12px}
-.badge{display:inline-flex;padding:6px 9px;border-radius:999px;background:var(--soft);font-size:12px;font-weight:700}.safe{background:var(--blue);color:#1e3a8a;padding:12px 14px;border-radius:14px;font-size:13px;line-height:1.5}
+.btn{width:100%;border:0;border-radius:14px;padding:14px 16px;font-size:15px;font-weight:700;background:var(--soft);color:var(--ink)}
+.btn.primary{background:var(--accent);color:#fff}.btn.tiny{width:auto;padding:8px 10px;font-size:12px}.btn.danger{background:var(--red);color:#991b1b}
+input,select{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px 13px;font-size:15px;background:#fff}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}.field{margin-bottom:12px}
+.badge{display:inline-flex;padding:6px 9px;border-radius:999px;background:var(--soft);font-size:12px;font-weight:700}
+.safe{background:var(--blue);color:#1e3a8a;padding:12px 14px;border-radius:14px;font-size:13px;line-height:1.5}
+.ok{background:var(--green);color:#166534;padding:12px 14px;border-radius:14px;font-size:13px;line-height:1.5}
+.warn{background:var(--orange);color:#9a3412;padding:12px 14px;border-radius:14px;font-size:13px;line-height:1.5}
 .tripitem{padding:14px;border:1px solid var(--line);border-radius:16px;margin-bottom:10px}.tripitem.active{border:2px solid var(--accent)}
 .seats{display:flex;gap:8px;margin:16px 0}.seat{flex:1;text-align:center;padding:13px 4px;border-radius:14px;border:1px solid var(--line);background:#fafafa}.seat.you{background:var(--accent);color:#fff}.seat.target{border:2px solid var(--accent)}
 .kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}.kpi{background:var(--soft);padding:14px;border-radius:15px}.kpi b{display:block;margin-top:4px}
 .stop{display:grid;grid-template-columns:1fr auto;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);align-items:center}.stop.next{background:#fafafa;margin:0 -8px;padding:10px 8px;border-radius:12px}
 .screen{display:none}.screen.active{display:block}.back{border:0;background:none;color:var(--muted);padding:8px 0;font-size:14px}
-.nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);backdrop-filter:blur(14px);border-top:1px solid var(--line)}.navin{max-width:560px;margin:auto;display:grid;grid-template-columns:repeat(5,1fr);padding:7px 8px calc(7px + env(safe-area-inset-bottom))}.nav button{border:0;background:none;padding:9px 2px;font-size:11px;color:var(--muted)}
-.progress{height:8px;background:#e5e7eb;border-radius:99px;overflow:hidden}.progress>div{height:100%;background:#0f172a;width:0}
-.preview{width:100%;max-height:300px;object-fit:contain;border-radius:14px;display:none;background:#eef2f7}
-</style></head>
-<body><div class="app">
+.nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);backdrop-filter:blur(14px);border-top:1px solid var(--line)}
+.navin{max-width:560px;margin:auto;display:grid;grid-template-columns:repeat(5,1fr);padding:7px 8px calc(7px + env(safe-area-inset-bottom))}
+.nav button{border:0;background:none;padding:9px 2px;font-size:11px;color:var(--muted)}
+.historyItem{padding:10px 0;border-bottom:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="app">
 
 <section id="home" class="screen active">
-<h1>SeatMate</h1><div class="small">乗車中アシスタント v5</div>
-<div class="card"><div class="row"><div class="grow"><h2>保存した乗車</h2><div class="small">最大5件</div></div><span id="count" class="badge"></span></div><div id="tripList"></div><button id="addBtn" class="btn primary" onclick="newTrip()">＋ 新しい列車を登録</button></div>
-<div id="activeCard" style="display:none">
-<div class="card"><div class="row"><div class="grow"><div id="trainName" style="font-size:22px;font-weight:800"></div><div id="route" class="muted"></div></div><span id="serviceBadge" class="badge"></span></div>
-<div class="seats"><div id="seatYou" class="seat you"></div><div id="seatTarget" class="seat target"></div><div class="seat">—<br><span class="small">同列</span></div></div>
-<div class="kpis"><div class="kpi"><span class="small">現在</span><b id="current"></b></div><div class="kpi"><span class="small">次駅</span><b id="next"></b></div></div>
-<div id="sourceInfo" class="safe" style="margin-top:12px"></div><div style="height:12px"></div><button class="btn primary" onclick="show('check')">隣席を確認する</button><div style="height:8px"></div><button class="btn" onclick="editActive()">この乗車を編集</button></div></div>
-</section>
+<h1>SeatMate</h1><div class="small">Inference v11</div>
 
-<section id="register" class="screen"><button class="back" onclick="show('home')">← ホームに戻る</button><h1 id="regTitle">列車登録</h1>
-<div class="card"><h2>スクショから読み取る</h2><input id="shot" type="file" accept="image/*" onchange="previewImage(event)"><div style="height:10px"></div><img id="preview" class="preview"><div style="height:10px"></div><button class="btn" onclick="runOCR()">OCR実行</button><div id="ocrStatus" class="small" style="margin-top:8px"></div><div class="progress"><div id="bar"></div></div></div>
-<div class="card"><h2>登録内容</h2>
-<div class="field"><label>日付</label><input id="date" type="date"></div><div class="field"><label>列車名</label><input id="train" placeholder="例：はくたか562号" oninput="tryResolve()"></div>
-<div class="grid2"><div class="field"><label>乗車駅</label><input id="from"></div><div class="field"><label>降車駅</label><input id="to"></div></div>
-<div class="grid2"><div class="field"><label>号車</label><input id="car"></div><div class="field"><label>座席</label><input id="seat"></div></div>
-<div class="field"><label>隣席</label><input id="neighbor"></div><div class="field"><label>隣席が乗ってきそうな駅（任意）</label><input id="predictedStation"></div>
-<div id="resolveStatus" class="safe">列車名が時刻表カタログにあれば停車駅を自動設定します。</div><div style="height:12px"></div><button class="btn primary" onclick="saveTrip()">保存する</button></div></section>
-
-<section id="ride" class="screen"><button class="back" onclick="show('home')">← ホームに戻る</button><h1>乗車中</h1><div class="card"><h2 id="rideTitle"></h2><div id="stops"></div></div></section>
-<section id="check" class="screen"><button class="back" onclick="show('home')">← ホームに戻る</button><h1>座席確認</h1><div id="checkTarget" class="small"></div><div class="card"><h2>おすすめ公式サービス</h2><b id="serviceName"></b><div id="loginHint" class="safe" style="margin-top:12px"></div><div style="height:12px"></div><button class="btn primary" onclick="openService()">公式サイトを開く</button><div style="height:8px"></div><button class="btn" onclick="show('accounts')">ログイン設定</button></div><div class="card"><h2>検索に使う情報</h2><div id="copyRows"></div></div><div class="card"><h2>確認結果</h2><div class="grid2"><button class="btn" onclick="record('空席')">○ 空席</button><button class="btn" onclick="record('使用不可')">× 使用不可</button></div></div></section>
-<section id="accounts" class="screen"><button class="back" onclick="show('check')">← 座席確認に戻る</button><h1>ログイン設定</h1><div class="card"><div class="safe">パスワードは保存せず、Safari/キーチェーンを利用します。</div></div><div id="accountCards"></div></section>
-<section id="history" class="screen"><h1>履歴</h1><div class="card"><div id="historyList"></div></div></section>
-<section id="settings" class="screen"><h1>設定</h1><div class="card"><button class="btn" onclick="show('accounts')">ログイン設定</button><div style="height:8px"></div><button class="btn danger" onclick="clearAll()">保存データを削除</button></div></section>
+<div class="card">
+<div class="row"><div class="grow"><h2>保存した乗車</h2><div class="small">最大5件</div></div><span id="count" class="badge"></span></div>
+<div id="tripList"></div>
+<button id="addBtn" class="btn primary" onclick="newTrip()">＋ 新しい列車を登録</button>
 </div>
 
-<div class="nav"><div class="navin"><button onclick="show('home')">ホーム</button><button onclick="show('ride')">乗車中</button><button onclick="show('check')">座席確認</button><button onclick="show('history')">履歴</button><button onclick="show('settings')">設定</button></div></div>
+<div id="activeCard" style="display:none">
+<div class="card">
+<div class="row">
+  <div class="grow">
+    <div id="trainName" style="font-size:22px;font-weight:800"></div>
+    <div id="route" class="muted"></div>
+  </div>
+  <span id="serviceBadge" class="badge"></span>
+</div>
+
+<div class="seats">
+  <div id="seatYou" class="seat you"></div>
+  <div id="seatTarget" class="seat target"></div>
+  <div class="seat">—<br><span class="small">同列</span></div>
+</div>
+
+<div class="kpis">
+  <div class="kpi"><span class="small">現在</span><b id="currentSection"></b></div>
+  <div class="kpi"><span class="small">次駅</span><b id="nextStop"></b></div>
+</div>
+
+<div id="predictionCard" class="safe" style="margin-top:12px"></div>
+<div id="inferenceCard" class="safe" style="margin-top:10px"></div>
+
+<div id="acceptInferenceArea" style="display:none;margin-top:10px">
+  <button class="btn" onclick="acceptInference()">推定駅を採用する</button>
+</div>
+
+<div style="height:12px"></div>
+<button class="btn primary" onclick="show('check')">隣席を確認する</button>
+<div style="height:8px"></div>
+<button class="btn" onclick="show('ride')">停車駅を見る</button>
+</div>
+</div>
+</section>
+
+<section id="register" class="screen">
+<button class="back" onclick="show('home')">← ホームに戻る</button>
+<h1>列車登録</h1>
+<div class="card">
+<div class="field"><label>日付</label><input id="date" type="date"></div>
+<div class="field"><label>列車名</label><input id="train"></div>
+<div class="grid2"><div class="field"><label>乗車駅</label><input id="from"></div><div class="field"><label>降車駅</label><input id="to"></div></div>
+<div class="grid2"><div class="field"><label>号車</label><input id="car"></div><div class="field"><label>座席</label><input id="seat"></div></div>
+<div class="field"><label>隣席</label><input id="neighbor"></div>
+<div class="field"><label>隣席が乗ってきそうな駅（任意）</label><input id="predictedStation"></div>
+<div class="field"><label>通知タイミング</label>
+<select id="notifyBefore">
+<option value="0">通知なし</option>
+<option value="5">5分前</option>
+<option value="10" selected>10分前</option>
+<option value="15">15分前</option>
+<option value="20">20分前</option>
+</select></div>
+<div class="safe">停車駅・時刻は前バージョンで保存したデータを引き継ぎます。</div>
+<div style="height:12px"></div>
+<button class="btn primary" onclick="saveTrip()">保存</button>
+</div>
+</section>
+
+<section id="ride" class="screen">
+<button class="back" onclick="show('home')">← ホームに戻る</button>
+<h1>停車駅</h1>
+<div class="card"><h2 id="rideTitle"></h2><div id="stops"></div></div>
+</section>
+
+<section id="check" class="screen">
+<button class="back" onclick="show('home')">← ホームに戻る</button>
+<h1>座席確認</h1>
+
+<div class="card">
+<h2>おすすめ公式サービス</h2>
+<b id="serviceName"></b>
+<div class="safe" style="margin-top:12px">ログインが必要な場合はSafari / キーチェーンを利用してください。</div>
+<div style="height:12px"></div>
+<button class="btn primary" onclick="openService()">公式サイトを開く</button>
+</div>
+
+<div class="card">
+<h2>確認地点</h2>
+<div class="field"><label>どの駅の手前/付近で確認したか</label>
+<select id="checkedAtStation"></select></div>
+<div class="small">この情報を使って「どの駅から状態が変わったか」を推定します。</div>
+</div>
+
+<div class="card">
+<h2>確認結果</h2>
+<div class="grid2">
+<button class="btn" onclick="record('空席')">○ 空席</button>
+<button class="btn" onclick="record('使用不可')">× 使用不可</button>
+</div>
+<div style="height:8px"></div>
+<button class="btn" onclick="record('不明')">? 不明</button>
+</div>
+
+<div class="card">
+<h2>検索に使う情報</h2>
+<div id="copyRows"></div>
+</div>
+</section>
+
+<section id="history" class="screen">
+<h1>履歴</h1>
+<div class="card"><div id="historyList"></div></div>
+</section>
+
+<section id="settings" class="screen">
+<h1>設定</h1>
+<div class="card">
+<div class="safe">v11では履歴から乗車駅候補を推定します。推定は断定ではなく、ユーザーが採用して初めて通知対象になります。</div>
+<div style="height:8px"></div>
+<button class="btn danger" onclick="clearAll()">保存データを削除</button>
+</div>
+</section>
+
+</div>
+
+<div class="nav"><div class="navin">
+<button onclick="show('home')">ホーム</button>
+<button onclick="show('ride')">停車駅</button>
+<button onclick="show('check')">座席確認</button>
+<button onclick="show('history')">履歴</button>
+<button onclick="show('settings')">設定</button>
+</div></div>
 
 <script>
-const timetableCatalog = {"はくたか562号": {"source_name": "JR東日本 公式時刻表", "source_url": "https://timetables.jreast.co.jp/2610/train/095/098622.html", "type": "新幹線", "service": "えきねっと", "stops": [{"name": "敦賀", "arr": null, "dep": "10:58"}, {"name": "越前たけふ", "arr": "11:10", "dep": "11:10"}, {"name": "福井", "arr": "11:19", "dep": "11:20"}, {"name": "芦原温泉", "arr": "11:28", "dep": "11:29"}, {"name": "加賀温泉", "arr": "11:37", "dep": "11:37"}, {"name": "小松", "arr": "11:45", "dep": "11:45"}, {"name": "金沢", "arr": "11:57", "dep": "11:59"}, {"name": "新高岡", "arr": "12:12", "dep": "12:13"}, {"name": "富山", "arr": "12:21", "dep": "12:22"}, {"name": "黒部宇奈月温泉", "arr": "12:34", "dep": "12:35"}, {"name": "糸魚川", "arr": "12:48", "dep": "12:49"}, {"name": "上越妙高", "arr": "13:01", "dep": "13:02"}, {"name": "長野", "arr": "13:21", "dep": "13:23"}, {"name": "高崎", "arr": "14:03", "dep": "14:04"}, {"name": "大宮", "arr": "14:27", "dep": "14:28"}, {"name": "上野", "arr": "14:47", "dep": "14:48"}, {"name": "東京", "arr": "14:52", "dep": null}]}};
+let trips=JSON.parse(localStorage.getItem('sm_trips')||'[]');
+let activeId=localStorage.getItem('sm_active')||null;
+let history=JSON.parse(localStorage.getItem('sm_hist')||'[]');
+let editing=null;
+let latestInference=null;
+
 const services=[
 {id:'smart-ex',test:/のぞみ|ひかり|こだま|みずほ|さくら|つばめ/i,name:'スマートEX',url:'https://smart-ex.jp/'},
 {id:'eki-net',test:/はくたか|かがやき|あさま|とき|たにがわ|やまびこ|はやぶさ|こまち|つばさ|なすの/i,name:'えきねっと',url:'https://www.eki-net.com/'},
-{id:'e5489',test:/サンダーバード|しらさぎ|くろしお|やくも|はるか/i,name:'e5489',url:'https://www.jr-odekake.net/goyoyaku/e5489/'},
-{id:'jrkyushu',test:/ソニック|にちりん|かもめ|ゆふ|ゆふいんの森|きりしま|みどり/i,name:'JR九州ネット予約',url:'https://www.jrkyushu.co.jp/railway/netyoyaku/'}
+{id:'e5489',test:/サンダーバード|しらさぎ|くろしお|やくも|はるか|こうのとり|きのさき|はしだて|まいづる/i,name:'e5489',url:'https://www.jr-odekake.net/goyoyaku/e5489/'},
+{id:'jrkyushu',test:/ソニック|にちりん|かもめ|ゆふ|ゆふいんの森|きりしま|みどり|ハウステンボス/i,name:'JR九州ネット予約',url:'https://www.jrkyushu.co.jp/railway/netyoyaku/'}
 ];
-let trips=JSON.parse(localStorage.getItem('sm_trips')||'[]'),activeId=localStorage.getItem('sm_active')||null,history=JSON.parse(localStorage.getItem('sm_hist')||'[]'),accounts=JSON.parse(localStorage.getItem('sm_accounts')||'{}'),editing=null;
 
-function normTrain(s){return (s||'').replace(/\s+/g,'').replace(/号号$/,'号')}
-function resolveTrain(name){return timetableCatalog[normTrain(name)]||null}
-function svc(train){return services.find(s=>s.test.test(train))||{id:'other',name:'JR公式予約サービス',url:'https://www.jreast.co.jp/'}}
+function svc(n){return services.find(s=>s.test.test(n))||{id:'other',name:'JR公式予約サービス',url:'https://www.jr-central.co.jp/'}}
 function active(){return trips.find(t=>t.id===activeId)||trips[0]||null}
 function uid(){return't'+Date.now()}
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');render();scrollTo(0,0)}
 function copy(v){navigator.clipboard.writeText(v).then(()=>alert('コピーしました：'+v)).catch(()=>prompt('コピーしてください',v))}
-function newTrip(){if(trips.length>=5){alert('保存は5件までです');return}editing=null;clearForm();show('register')}
-function editActive(){let t=active();if(!t)return;editing=t.id;fill(t);show('register')}
-function clearForm(){let d=new Date(),z=n=>String(n).padStart(2,'0');date.value=`${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;train.value='';from.value='';to.value='';car.value='';seat.value='';neighbor.value='';predictedStation.value='';resolveStatus.textContent='列車名が時刻表カタログにあれば停車駅を自動設定します。'}
-function fill(t){date.value=t.date;train.value=t.train;from.value=t.from;to.value=t.to;car.value=t.car;seat.value=t.seat;neighbor.value=t.neighbor;predictedStation.value=t.predictedStation||'';tryResolve()}
-function tryResolve(){let r=resolveTrain(train.value);resolveStatus.textContent=r?`公式時刻表データを確認済み：${r.source_name} / ${r.stops.length}駅`:'この試作カタログには未登録です。保存はできますが、全国自動取得にはバックエンド接続が必要です。'}
-function saveTrip(){let resolved=resolveTrain(train.value);let o={id:editing||uid(),date:date.value,train:normTrain(train.value),from:from.value,to:to.value,car:car.value,seat:seat.value,neighbor:neighbor.value,predictedStation:predictedStation.value,stops:resolved?resolved.stops:[],source:resolved?{name:resolved.source_name,url:resolved.source_url}:null};if(editing)trips[trips.findIndex(x=>x.id===editing)]=o;else trips.push(o);activeId=o.id;persist();show('home')}
+function calcNeighbor(s){let m=String(s).toUpperCase().match(/^(\d+)([A-E])$/);if(!m)return'';let map={A:'B',B:'A',C:'B',D:'E',E:'D'};return m[1]+(map[m[2]]||'')}
+function newTrip(){if(trips.length>=5)return alert('保存は5件までです');editing=null;clearForm();show('register')}
+function clearForm(){let d=new Date(),z=n=>String(n).padStart(2,'0');date.value=`${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;train.value='';from.value='';to.value='';car.value='';seat.value='';neighbor.value='';predictedStation.value='';notifyBefore.value='10'}
+function saveTrip(){
+ if(seat.value&&!neighbor.value)neighbor.value=calcNeighbor(seat.value);
+ const old=editing?trips.find(t=>t.id===editing):null;
+ const o={id:editing||uid(),date:date.value,train:train.value.trim(),from:from.value.trim(),to:to.value.trim(),car:car.value.trim(),seat:seat.value.trim(),neighbor:neighbor.value.trim(),predictedStation:predictedStation.value.trim(),notifyBefore:Number(notifyBefore.value),stops:old?.stops||[]};
+ if(editing)trips[trips.findIndex(x=>x.id===editing)]=o;else trips.push(o);
+ activeId=o.id;persist();show('home')
+}
 function persist(){localStorage.setItem('sm_trips',JSON.stringify(trips));if(activeId)localStorage.setItem('sm_active',activeId)}
 function selectTrip(id){activeId=id;persist();render()}
 function delTrip(id){if(!confirm('削除しますか？'))return;trips=trips.filter(t=>t.id!==id);if(activeId===id)activeId=trips[0]?.id||null;persist();render()}
-function saveAccount(id){accounts[id]={loginId:document.getElementById('acct_'+id).value};localStorage.setItem('sm_accounts',JSON.stringify(accounts));alert('IDを保存しました');render()}
 function openService(){let t=active();if(t)window.open(svc(t.train).url,'_blank')}
-function record(status){let t=active();if(!t)return;history.unshift({train:t.train,seat:t.neighbor,status,time:new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})});localStorage.setItem('sm_hist',JSON.stringify(history));render();alert('記録しました')}
 function clearAll(){if(confirm('すべて削除しますか？')){localStorage.clear();location.reload()}}
-function hm(t){if(!t)return null;let [h,m]=t.split(':').map(Number);return h*60+m}
-function currentInfo(t){if(!t.stops?.length)return{current:'時刻表未取得',next:'-'};let now=new Date().getHours()*60+new Date().getMinutes();for(let i=0;i<t.stops.length;i++){let a=hm(t.stops[i].arr)||hm(t.stops[i].dep);if(a!==null&&a>=now){let prev=t.stops[Math.max(0,i-1)];return{current:i===0?t.stops[0].name:`${prev.name} → ${t.stops[i].name}`,next:`${t.stops[i].name} ${t.stops[i].arr||t.stops[i].dep||''}`,nextName:t.stops[i].name}}}return{current:'終着後',next:'到着済み'}}
-function previewImage(e){let f=e.target.files?.[0];if(!f)return;preview.src=URL.createObjectURL(f);preview.style.display='block'}
-async function runOCR(){let f=shot.files?.[0];if(!f)return alert('画像を選択してください');if(!window.Tesseract)return alert('OCRライブラリを読み込めません');let res=await Tesseract.recognize(f,'jpn+eng',{logger:m=>{if(m.status==='recognizing text'){let p=Math.round(m.progress*100);bar.style.width=p+'%';ocrStatus.textContent='読み取り中 '+p+'%'}}});parseOCR(res.data.text||'');ocrStatus.textContent='読み取り完了';bar.style.width='100%'}
-function parseOCR(raw){let compact=raw.replace(/\s/g,'');let m=compact.match(/(はくたか|かがやき|あさま|とき|たにがわ|やまびこ|はやぶさ|こまち|つばさ|なすの|のぞみ|ひかり|こだま|みずほ|さくら|つばめ)\d+号?/);if(m)train.value=/号$/.test(m[0])?m[0]:m[0]+'号';let c=compact.match(/(\d{1,2})号車/);if(c)car.value=c[1];let s=compact.match(/(\d{1,2})番?([A-E])/i);if(s){seat.value=s[1]+s[2].toUpperCase();neighbor.value=calcNeighbor(seat.value)};tryResolve()}
-function calcNeighbor(s){let m=String(s).toUpperCase().match(/^(\d+)([A-E])$/);if(!m)return'';let map={A:'B',B:'A',C:'B',D:'E',E:'D'};return m[1]+(map[m[2]]||'')}
 
-function render(){let t=active();count.textContent=trips.length+'/5';addBtn.disabled=trips.length>=5;addBtn.style.opacity=trips.length>=5?.5:1;
-tripList.innerHTML=trips.length?trips.map(x=>`<div class="tripitem ${x.id===activeId?'active':''}"><div class="row"><div class="grow"><b>${x.train}</b><div class="small">${x.date} ${x.from}→${x.to}</div><div class="small">${x.car}号車 ${x.seat}</div></div><button class="btn tiny" onclick="selectTrip('${x.id}')">選択</button></div><div style="height:8px"></div><button class="btn tiny danger" onclick="delTrip('${x.id}')">削除</button></div>`).join(''):'<div class="muted">まだ保存した乗車はありません。</div>';
-activeCard.style.display=t?'block':'none';accountCards.innerHTML=services.map(s=>`<div class="card"><h2>${s.name}</h2><input id="acct_${s.id}" value="${accounts[s.id]?.loginId||''}" placeholder="ログインID / メール"><div style="height:8px"></div><button class="btn" onclick="saveAccount('${s.id}')">IDを保存</button></div>`).join('');
-historyList.innerHTML=history.length?history.map(h=>`<div style="padding:10px 0;border-bottom:1px solid #e5e7eb"><b>${h.train}</b><div>${h.time} ${h.seat}：${h.status}</div></div>`).join(''):'まだ履歴はありません。';
-if(!t)return;let s=svc(t.train),ci=currentInfo(t);trainName.textContent='🚄 '+t.train;route.textContent=t.from+' → '+t.to;serviceBadge.textContent=s.name;seatYou.innerHTML=t.seat+'<br><span class="small" style="color:#fff">YOU</span>';seatTarget.innerHTML=t.neighbor+'<br><span class="small">隣席</span>';current.textContent=ci.current;next.textContent=ci.next;rideTitle.textContent=t.train;checkTarget.textContent=`確認対象：${t.car}号車 ${t.neighbor}`;serviceName.textContent=s.name;loginHint.textContent=accounts[s.id]?.loginId?`保存済みID：${accounts[s.id].loginId}`:'ログインIDは未登録です。';sourceInfo.textContent=t.source?`時刻表：${t.source.name}（公式情報）`:'時刻表：未取得';
-stops.innerHTML=t.stops?.length?t.stops.map(st=>`<div class="stop ${st.name===ci.nextName?'next':''}"><div><b>${st.name}</b><div class="small">${st.arr?'着 '+st.arr:''} ${st.dep?'発 '+st.dep:''}</div></div><button class="btn tiny" onclick="copy('${st.name}')">コピー</button></div>`).join(''):'<div class="muted">停車駅データがありません。</div>';
-let rows=[['出発駅',t.from],['到着駅',t.to],['日付',t.date],['列車',t.train],['確認席',`${t.car}号車 ${t.neighbor}`]];copyRows.innerHTML=rows.map(([k,v])=>`<div class="row" style="padding:10px 0;border-bottom:1px solid #e5e7eb"><div class="grow"><div class="small">${k}</div><b>${v}</b></div><button class="btn tiny" onclick="copy('${v}')">コピー</button></div>`).join('');
+function hmToMinutes(v){
+ if(!v)return null;
+ const m=String(v).match(/(\d{1,2}):(\d{2})/);
+ return m?Number(m[1])*60+Number(m[2]):null
 }
-if(trips.length&&!activeId){activeId=trips[0].id;persist()}render();if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
-</script></body></html>
+function nowMinutes(){let d=new Date();return d.getHours()*60+d.getMinutes()}
+
+function timelineState(t){
+ const st=t.stops||[];
+ if(!st.length)return{current:'時刻表なし',next:'-',minutes:null,nextName:null};
+ const now=nowMinutes();
+
+ for(let i=0;i<st.length;i++){
+   const target=hmToMinutes(st[i].arr)||hmToMinutes(st[i].dep);
+   if(target!==null&&target>=now){
+     const prev=st[Math.max(0,i-1)];
+     return{
+       current:i===0?st[0].name:`${prev.name} → ${st[i].name}`,
+       next:`${st[i].name} ${st[i].arr||st[i].dep||''}`,
+       minutes:Math.max(0,target-now),
+       nextName:st[i].name
+     };
+   }
+ }
+ return{current:'終着後',next:'到着済み',minutes:null,nextName:null}
+}
+
+function record(status){
+ const t=active();if(!t)return;
+ const station=checkedAtStation.value||'未指定';
+ history.unshift({
+   id:uid(),
+   ts:new Date().toISOString(),
+   train:t.train,
+   tripId:t.id,
+   seat:t.neighbor,
+   status,
+   station,
+   time:new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})
+ });
+ localStorage.setItem('sm_hist',JSON.stringify(history));
+ render();
+ alert(`記録しました：${station} / ${status}`);
+}
+
+function inferBoardingStation(t){
+ const records=history
+   .filter(h=>h.tripId===t.id && h.seat===t.neighbor && (h.status==='空席'||h.status==='使用不可'))
+   .slice()
+   .reverse();
+
+ if(records.length<2)return null;
+
+ let lastEmpty=null;
+ for(const r of records){
+   if(r.status==='空席')lastEmpty=r;
+   if(r.status==='使用不可' && lastEmpty){
+     const stopNames=(t.stops||[]).map(s=>s.name);
+     const emptyIdx=stopNames.indexOf(lastEmpty.station);
+     const busyIdx=stopNames.indexOf(r.station);
+
+     let candidate=r.station;
+     let confidence='中';
+
+     if(emptyIdx>=0 && busyIdx>=0 && busyIdx>emptyIdx){
+       candidate=stopNames[busyIdx];
+       confidence=(busyIdx-emptyIdx===1)?'高':'中';
+     }
+
+     return{
+       station:candidate,
+       from:lastEmpty.station,
+       to:r.station,
+       confidence,
+       message:`${lastEmpty.station}では空席、${r.station}では使用不可でした。${candidate}付近から使用された可能性があります。`
+     };
+   }
+ }
+ return null;
+}
+
+function acceptInference(){
+ const t=active();if(!t||!latestInference)return;
+ t.predictedStation=latestInference.station;
+ trips=trips.map(x=>x.id===t.id?t:x);
+ persist();
+ render();
+ alert(`${latestInference.station}を隣席乗車予測駅として採用しました。`);
+}
+
+function predictionState(t){
+ if(!t.predictedStation)return{message:'隣席の乗車駅は未設定です。',soon:false};
+ const stop=(t.stops||[]).find(s=>s.name===t.predictedStation);
+ if(!stop)return{message:`${t.predictedStation}を停車駅一覧で確認できません。`,soon:false};
+ const m=hmToMinutes(stop.arr)||hmToMinutes(stop.dep);
+ if(m===null)return{message:`${t.predictedStation}の時刻が未登録です。`,soon:false};
+ const diff=m-nowMinutes();
+ if(diff<0)return{message:`${t.predictedStation}は通過済みです。`,soon:false};
+ if(diff<=Number(t.notifyBefore||10))return{message:`${t.predictedStation}まであと約${diff}分。隣席 ${t.neighbor} に乗車がある可能性があります。`,soon:true};
+ return{message:`${t.predictedStation}から隣席 ${t.neighbor} が使用される可能性があります。あと約${diff}分。`,soon:false}
+}
+
+function maybeNotify(t){
+ if(!t||!t.predictedStation||!t.notifyBefore)return;
+ const p=predictionState(t);
+ if(!p.soon)return;
+ const key=`pred_${t.id}_${t.predictedStation}`;
+ if(sessionStorage.getItem(key))return;
+ sessionStorage.setItem(key,'1');
+ setTimeout(()=>alert(p.message),250);
+}
+
+function render(){
+ let t=active();
+
+ count.textContent=trips.length+'/5';
+ addBtn.disabled=trips.length>=5;
+ addBtn.style.opacity=trips.length>=5?.5:1;
+
+ tripList.innerHTML=trips.length?trips.map(x=>`<div class="tripitem ${x.id===activeId?'active':''}">
+ <div class="row"><div class="grow"><b>${x.train||'列車名未設定'}</b><div class="small">${x.date} ${x.from}→${x.to}</div><div class="small">${x.car}号車 ${x.seat}</div></div><button class="btn tiny" onclick="selectTrip('${x.id}')">選択</button></div>
+ <div style="height:8px"></div><button class="btn tiny danger" onclick="delTrip('${x.id}')">削除</button></div>`).join(''):'<div class="muted">まだ保存した乗車はありません。</div>';
+
+ activeCard.style.display=t?'block':'none';
+
+ historyList.innerHTML=history.length?history.map(h=>`<div class="historyItem"><b>${h.train}</b><div>${h.station} / ${h.time}</div><div>${h.seat}：${h.status}</div></div>`).join(''):'まだ履歴はありません。';
+
+ if(!t)return;
+
+ const s=svc(t.train),ts=timelineState(t),ps=predictionState(t);
+ latestInference=inferBoardingStation(t);
+
+ trainName.textContent='🚄 '+t.train;
+ route.textContent=t.from+' → '+t.to;
+ serviceBadge.textContent=s.name;
+ seatYou.innerHTML=t.seat+'<br><span class="small" style="color:#fff">YOU</span>';
+ seatTarget.innerHTML=t.neighbor+'<br><span class="small">隣席</span>';
+ currentSection.textContent=ts.current;
+ nextStop.textContent=ts.next;
+
+ predictionCard.className=ps.soon?'warn':'safe';
+ predictionCard.textContent=ps.message;
+
+ if(latestInference){
+   inferenceCard.className='ok';
+   inferenceCard.textContent=`自動推定（信頼度 ${latestInference.confidence}）：${latestInference.message}`;
+   acceptInferenceArea.style.display=t.predictedStation===latestInference.station?'none':'block';
+ }else{
+   inferenceCard.className='safe';
+   inferenceCard.textContent='確認履歴が2件以上たまると、空席→使用不可の変化から乗車駅候補を推定します。';
+   acceptInferenceArea.style.display='none';
+ }
+
+ rideTitle.textContent=t.train;
+ serviceName.textContent=s.name;
+
+ checkedAtStation.innerHTML='<option value="">未指定</option>'+((t.stops||[]).map(x=>`<option value="${x.name}" ${x.name===ts.nextName?'selected':''}>${x.name}</option>`).join(''));
+
+ stops.innerHTML=t.stops?.length?t.stops.map(x=>`<div class="stop ${x.name===ts.nextName?'next':''}">
+ <div><b>${x.name}</b><div class="small">${x.arr?'着 '+x.arr:''} ${x.dep?'発 '+x.dep:''}</div></div>
+ <button class="btn tiny" onclick="copy('${x.name}')">コピー</button></div>`).join(''):'<div class="muted">停車駅がありません。</div>';
+
+ let rows=[['出発駅',t.from],['到着駅',t.to],['日付',t.date],['列車',t.train],['確認席',`${t.car}号車 ${t.neighbor}`]];
+ copyRows.innerHTML=rows.map(([k,v])=>`<div class="row" style="padding:10px 0;border-bottom:1px solid #e5e7eb"><div class="grow"><div class="small">${k}</div><b>${v}</b></div><button class="btn tiny" onclick="copy('${v}')">コピー</button></div>`).join('');
+
+ maybeNotify(t);
+}
+
+if(trips.length&&!activeId){activeId=trips[0].id;persist()}
+render();
+setInterval(render,30000);
+
+if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body>
+</html>
