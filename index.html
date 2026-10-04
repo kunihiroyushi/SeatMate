@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="theme-color" content="#f5f6f3"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+  <meta name="apple-mobile-web-app-title" content="SeatMate"/>
+  <title>SeatMate</title>
+  <link rel="manifest" href="manifest.webmanifest"/>
+  <link rel="apple-touch-icon" href="icon-192.png"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<svg class="svg-defs" aria-hidden="true" width="0" height="0">
+  <defs>
+    <symbol id="icon-seat" viewBox="0 0 24 24"><path d="M7 4v8.2c0 1.4 1.1 2.5 2.5 2.5H16V19h2v-6.3H9.5a.5.5 0 0 1-.5-.5V4H7Zm3.2 1.1A2.9 2.9 0 1 1 16 5.1a2.9 2.9 0 0 1-5.8 0ZM5 12.5h2v6.7H5z"/></symbol>
+    <symbol id="icon-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3.4 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="icon-history" viewBox="0 0 24 24"><path d="M5.1 8.3A8 8 0 1 1 4 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M4.8 4.8v4.5h4.5M12 7.5V12l3 1.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="10.7" cy="10.7" r="6.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m15.5 15.5 4.2 4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="icon-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M19 13.6v-3.2l-2-.6a7.6 7.6 0 0 0-.7-1.6l1-1.9-2.3-2.3-1.9 1a7.6 7.6 0 0 0-1.6-.7L10.9 2H7.7l-.6 2a7.6 7.6 0 0 0-1.6.7l-1.9-1-2.3 2.3 1 1.9a7.6 7.6 0 0 0-.7 1.6l-2 .6v3.2l2 .6a7.6 7.6 0 0 0 .7 1.6l-1 1.9 2.3 2.3 1.9-1a7.6 7.6 0 0 0 1.6.7l.6 2h3.2l.6-2a7.6 7.6 0 0 0 1.6-.7l1.9 1 2.3-2.3-1-1.9a7.6 7.6 0 0 0 .7-1.6l2-.6Z" transform="translate(2.3 1.3) scale(.8)" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<header class="app-header">
+  <div class="brand"><b>SeatMate</b><small>静かな旅のコックピット</small></div>
+  <button class="icon-button" data-page="settings" aria-label="設定"><svg><use href="#icon-gear"/></svg></button>
+</header>
+
+<main>
+  <section class="screen active" id="home">
+    <div class="heading home-heading"><div><span class="eyebrow">MY JOURNEY</span><h1>あなたの乗車</h1></div><button class="small-action" id="add">＋ 登録</button></div>
+    <div id="tripList" class="trip-list"></div>
+
+    <div class="ticket-card empty-ticket" id="empty">
+      <div class="ticket-kicker">SEATMATE / BOARDING PASS</div>
+      <h2>最初の旅を登録</h2>
+      <p>予約画面や乗換案内のスクリーンショットから、列車・停車駅・時刻を読み取ります。</p>
+      <button class="primary" id="start">画像から乗車を登録</button>
+    </div>
+
+    <div hidden id="dashboard">
+      <article class="ticket-card journey-ticket">
+        <div class="ticket-topline"><span class="ticket-kicker">SEATMATE / JOURNEY</span><small id="tripDate"></small></div>
+        <div class="train-meta"><h2 id="trainTitle"></h2><span class="train-type" id="trainTypeLabel">TRAIN</span></div>
+        <div class="route-title" id="route"></div>
+
+        <div class="motion-stage" aria-label="時刻表ベースの進行状況">
+          <div class="rail-label rail-from" id="progressFrom"></div>
+          <div class="rail-label rail-to" id="progressTo"></div>
+          <div class="rail-line"><div class="rail-done" id="railDone"></div><span class="rail-dot start"></span><span class="rail-dot end"></span></div>
+          <div class="train-marker" id="trainMarker">
+            <svg id="trainSilhouette" viewBox="0 0 124 30" role="img" aria-label="列車のシルエット" data-kind="shinkansen">
+              <g class="shape shinkansen"><path d="M3 22.8h78.7c14.1 0 24.3-2 38.6-8.9-8-5.8-18.8-7.6-31.4-7.6H28.2c-7.7 0-13.8 2.1-18.3 6.2L3 18.5Z"/><path d="M21 11.2h50.5" class="window-line"/></g>
+              <g class="shape limited"><path d="M5 22.5h105.8c5.8 0 8.7-2.7 8.7-8V8.2c0-2.5-1.8-4.3-4.7-4.3H21.5C12.1 3.9 7 7.4 5 14.1Z"/><path d="M19 9.2h73" class="window-line"/></g>
+              <g class="shape local"><path d="M7 23h105c4.1 0 6-2 6-5.8V8.4c0-3.1-2.1-5.4-5.3-5.4H16.3C10.2 3 7 6.7 7 12.1Z"/><path d="M20 9h82" class="window-line"/></g>
+              <circle cx="24" cy="24" r="2.8" class="wheel"/><circle cx="96" cy="24" r="2.8" class="wheel"/>
+            </svg>
+          </div>
+        </div>
+        <p class="schedule-note" id="progressCaption">登録時刻表から算出した進行目安</p>
+
+        <div class="cockpit-summary">
+          <div class="next-block"><span class="eyebrow">NEXT</span><strong id="next">—</strong><small id="current"></small></div>
+          <div class="time-block"><b id="nextTime">—</b><span id="remaining"></span></div>
+        </div>
+
+        <div class="context-row">
+          <div class="weather-chip" id="weatherCard" hidden><span class="weather-symbol" id="weatherIcon">○</span><div><b id="weatherTemp">—</b><small><span id="weatherStation"></span> <span id="weatherText"></span></small></div></div>
+          <div class="seat-pair"><div><small>YOUR SEAT</small><b id="yourSeat"></b></div><span></span><div><small>NEXT SEAT</small><b id="targetSeat"></b></div></div>
+        </div>
+
+        <div class="prediction-strip" id="predictionStrip"><div><span class="signal-dot"></span><b id="predictionHeadline">乗車駅はまだ推定されていません</b><small id="prediction"></small></div></div>
+
+        <div class="calendar-strip">
+          <div><span class="eyebrow">CALENDAR</span><b id="calendarTitle">接近通知</b><small id="calendarStatus">候補駅を採用すると設定できます</small></div>
+          <button class="calendar-button" id="calendarNotify" disabled>Googleカレンダー</button>
+        </div>
+
+        <button class="primary check-primary" id="goCheck"><svg><use href="#icon-seat"/></svg>隣席を確認する <span>→</span></button>
+        <div class="ticket-actions"><button id="showStops" data-page="ride">停車駅</button><button id="updateTimetable">スクショ更新</button><button id="edit">編集</button></div>
+        <p class="import-stamp" id="importStamp"></p>
+      </article>
+
+      <div class="card next-action" id="nextActionCard"><div class="step">NEXT ACTION</div><h2 id="nextActionTitle">隣席を確認</h2><p id="nextActionText" class="note"></p><button class="primary" id="nextActionButton">隣席を確認する →</button></div>
+
+      <details class="card quiet-details"><summary>乗車駅の推定を詳しく見る</summary><div id="inference"></div><div hidden id="adoption"><label for="candidate">採用する候補駅</label><select id="candidate"></select><button class="primary" id="accept">この駅を採用する</button></div><button class="secondary" hidden id="unaccept">採用した駅を解除</button><p class="note">「使用不可」には予約・発売制限なども含まれます。乗車駅の候補として扱います。</p></details>
+    </div>
+  </section>
+
+  <section class="screen" id="register"><div class="heading"><h1 id="registerTitle">乗車を登録</h1><button class="secondary compact" data-page="home">戻る</button></div><form id="tripForm"><div aria-label="登録の手順" class="registration-steps"><button data-step="1" type="button">1 取り込む</button><button data-step="2" type="button">2 列車・時刻</button><button data-step="3" type="button">3 座席・保存</button></div><div class="source-toolbar"><button hidden id="viewSource" type="button">画像を拡大して確認 ↗</button><button id="changeImport" type="button">取り込み直す</button></div>
+    <div class="card" id="importPanel"><div class="step">01 / IMPORT</div><h2>乗る列車を、画像から。</h2><p class="note">停車駅を開いたスクリーンショットを選んでください。乗換があっても列車ごとに取り込めます。</p><div aria-label="入力方法" class="entry-tabs" role="group"><button class="selected" id="imageTab" type="button">画像から</button><button id="textTab" type="button">テキストから</button></div><div id="imageEntry"><label class="upload" for="shot"><b>＋ スクリーンショットを選ぶ</b><span>予約画面・乗換案内・切符</span><input accept="image/*" class="file-input" id="shot" type="file"/></label><img alt="選択した画像" hidden id="preview"/><button class="primary" disabled id="ocrRun" type="button">この画像を読み取る</button></div><div hidden id="textEntry"><label for="ocrText">コピーした情報 / 読み取り結果</label><textarea id="ocrText" placeholder="列車名・日付・停車駅と時刻を貼り付け" rows="7"></textarea><button class="secondary" id="pasteText" type="button">クリップボードから貼り付け</button><button class="primary" id="parse" type="button">列車・停車駅を取り込む</button></div><p id="ocrStatus" role="status">画像は端末内で処理します。初回は読み込みに通信が必要です。</p><button class="text-button" id="manualEntry" type="button">手入力で登録する →</button></div>
+    <div class="card" hidden id="importReview"><div class="step">02 / REVIEW</div><h2 id="reviewTitle">乗る列車を選ぶ</h2><div hidden id="segmentPicker"><label for="importSegment">取り込む列車</label><select id="importSegment"></select><p class="note">保存する列車を1本選びます。別の列車は新しい乗車として追加できます。</p></div><div id="importWarnings" role="status"></div><div id="importFields"></div><details id="importAdvanced"><summary>取り込み方法を変更</summary><label class="checklabel"><input id="applyFields" type="checkbox"/>日付・列車名・乗降駅の候補も反映する</label><p class="note" id="identityHint"></p><label for="importMode">停車駅の更新方法</label><select id="importMode"><option value="replace">一覧を置き換える（全駅がある画像・テキスト向け）</option><option value="merge">既存の駅に追加・時刻更新する（分割画像向け）</option></select></details><div id="importDiff"></div><p class="note">「編集内容に反映」した後も修正できます。最後に「保存」するまで端末の乗車データは更新されません。</p><button class="primary" id="applyImport" type="button">この内容で座席入力へ →</button><button class="secondary" id="discardImport" type="button">取り込みに戻る</button></div>
+    <div class="card" id="tripDetails"><div class="step">03 / SEAT</div><p class="note" id="seatHelp">号車・座席は予約情報と照合してください。</p><label for="date">乗車日</label><input id="date" required type="date"/><label for="train">列車名</label><input id="train" placeholder="例：しなの12号" required/><div class="grid"><div><label for="from">乗車駅</label><input id="from" required/></div><div><label for="to">降車駅</label><input id="to" required/></div><div><label for="car">号車</label><input id="car" inputmode="numeric" required/></div><div><label for="seat">あなたの座席</label><input id="seat" placeholder="例：12A" required/></div></div><label for="neighbor">確認する隣席</label><input id="neighbor" placeholder="例：12B"/><p class="note">座席配列は列車によって異なります。確認する座席を指定してください。</p><label for="notifyBefore">候補駅のカレンダー通知</label><select id="notifyBefore"><option value="0">通知なし</option><option value="5">5分前</option><option selected value="10">10分前</option><option value="15">15分前</option><option value="20">20分前</option></select></div>
+    <div class="card" id="stopsPanel"><h2>登録内容を確認</h2><p class="note" id="parseQuality">途中駅がない場合は、停車駅を追加できます。</p><details id="stopDetails"><summary id="stopSummary">停車駅・時刻を編集</summary><div id="stopEditor"></div><button class="secondary" id="addStop" type="button">＋ 停車駅を追加</button></details><p id="formError" role="alert"></p><button class="primary" type="submit">保存して乗車画面へ</button></div></form></section>
+
+  <section class="screen" id="ride"><div class="heading"><div><span class="eyebrow">TIMELINE</span><h1>停車駅</h1></div><button class="secondary compact" data-page="home">戻る</button></div><div class="card timeline-card"><h2 id="rideTitle"></h2><div id="stops"></div><button class="secondary" id="editStops">停車駅・時刻を編集</button></div></section>
+
+  <section class="screen" id="check"><div class="heading"><div><span class="eyebrow">SEAT CHECK</span><h1>隣席を確認</h1></div></div><div class="card"><div class="step">01 / OFFICIAL SITE</div><label for="serviceSelect">列車名から判定した予約サービス</label><select id="serviceSelect"></select><p class="note" id="serviceHint"></p><button class="primary" id="openService">公式予約サイトを開く ↗</button><p class="note">座席表は公式サイトで確認してください。予約・購入操作は必要ありません。</p><div id="copyRows"></div></div><div class="card"><div class="step">02 / RECORD</div><p>同じ降車駅で検索の出発駅を停車駅に沿って変えると、変化した区間を絞り込めます。</p><label for="searchFrom">公式サイトで検索した出発駅</label><select id="searchFrom"></select><label for="searchTo">公式サイトで検索した到着駅</label><select id="searchTo"></select><button class="secondary" id="copySearch">検索区間をコピー</button><div class="grid"><button class="result" data-result="空席">○ 空席</button><button class="result" data-result="使用不可">× 使用不可</button></div><button class="secondary" data-result="不明">？ 判断できない</button><p class="note">列車・日付・号車・隣席をそろえて確認します。</p><button class="primary" data-page="home">記録から推定を見る →</button></div></section>
+
+  <section class="screen" id="history"><div class="heading"><div><span class="eyebrow">HISTORY</span><h1>確認履歴</h1></div></div><div class="card"><p class="note">選択中の乗車の履歴です。記録を取り消すと推定を再計算します。</p><div id="historyList"></div></div></section>
+
+  <section class="screen" id="settings"><div class="heading"><div><span class="eyebrow">SETTINGS</span><h1>設定</h1></div><button class="secondary compact" data-page="home">戻る</button></div><div class="card"><h2>Googleカレンダー通知</h2><p>乗車候補駅を採用すると、指定した分数前の予定をGoogleカレンダーに事前入力できます。SeatMateはGoogleアカウントやパスワードを保持しません。</p><p class="note">通知を受けるにはGoogleカレンダー側の通知を有効にしてください。</p></div><div class="card"><h2>ログインID</h2><p>必要なサービスだけ、この端末に保存できます。パスワードの保存・入力機能はありません。</p><label for="loginService">サービス</label><select id="loginService"></select><label for="loginId">ログインID（任意）</label><input autocomplete="off" id="loginId"/><label class="checklabel"><input id="rememberId" type="checkbox"/>この端末にIDを保存する</label><button class="primary" id="saveLogin">IDの設定を保存</button></div><div class="card"><h2>アプリ表示中の案内</h2><p>SeatMateを表示している間は、候補駅への接近を画面内でも案内します。</p><button class="secondary" id="enableNotification">システム通知を許可</button><p class="note" id="notificationStatus"></p></div><div class="card"><h2>データ</h2><p>乗車・履歴・任意のIDは端末内に保存します。有料API・専用サーバーは不要です。</p><button class="secondary" id="export">バックアップをダウンロード</button><label for="restore">バックアップから復元</label><input accept="application/json,.json" id="restore" type="file"/><button class="danger" id="clear">SeatMateの保存データを削除</button><p class="note">天気データ: Open-Meteo (CC BY 4.0)</p><p class="note version-note">SeatMate v18 App Edition</p></div></section>
+</main>
+
+<nav aria-label="メインメニュー" class="bottom-nav">
+  <button class="selected" data-page="home"><svg><use href="#icon-seat"/></svg><span>乗車</span></button>
+  <button data-page="check"><svg><use href="#icon-search"/></svg><span>確認</span></button>
+  <button data-page="history"><svg><use href="#icon-history"/></svg><span>履歴</span></button>
+</nav>
+<div hidden id="toast" role="status"></div>
+<dialog id="sourceDialog"><div class="source-head"><b>元の画像と照合</b><button id="sourceZoom" type="button">拡大</button><button id="sourceClose" type="button">閉じる</button></div><div class="source-scroll"><img alt="照合用の元画像" id="sourceImage"/></div></dialog>
+<script src="core.js"></script><script src="train-heading.js"></script><script src="transit.js"></script><script src="station-match.js"></script><script src="image-ocr.js"></script><script src="app.js"></script>
+</body></html>

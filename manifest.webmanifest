@@ -1,0 +1,16 @@
+{
+  "name":"SeatMate - 静かな旅のコックピット",
+  "short_name":"SeatMate",
+  "id":"./",
+  "start_url":"./index.html",
+  "scope":"./",
+  "display":"standalone",
+  "background_color":"#f2f4f2",
+  "theme_color":"#f5f6f3",
+  "lang":"ja",
+  "orientation":"portrait-primary",
+  "icons":[
+    {"src":"icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+    {"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+  ]
+}
