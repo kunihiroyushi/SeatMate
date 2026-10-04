@@ -1,0 +1,260 @@
+
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>SeatMate</title>
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{
+  --bg:#f6f7f9;--card:#fff;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;
+  --soft:#f1f5f9;--accent:#0f172a;--ok:#166534;--warn:#92400e;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.app{max-width:560px;margin:auto;min-height:100vh;padding:18px 16px 96px}
+h1{font-size:28px;margin:0} h2{font-size:18px;margin:0 0 12px}
+.small{font-size:12px;color:var(--muted)} .muted{color:var(--muted)}
+.card{background:var(--card);border-radius:22px;padding:18px;box-shadow:0 6px 28px rgba(15,23,42,.06);margin:0 0 14px}
+.hero{padding:22px}
+.row{display:flex;gap:10px;align-items:center}.grow{flex:1}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi{background:var(--soft);padding:14px;border-radius:15px}
+.kpi b{display:block;margin-top:4px;font-size:17px}
+.btn{width:100%;border:0;border-radius:14px;padding:14px 16px;font-size:15px;font-weight:700;background:var(--soft);color:var(--ink)}
+.btn.primary{background:var(--accent);color:white}.btn.tiny{width:auto;padding:8px 10px;font-size:12px}
+.btn.ok{background:#ecfdf5;color:var(--ok)} .btn.warn{background:#fff7ed;color:var(--warn)}
+input,select{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px 13px;font-size:15px;background:white}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+.field{margin-bottom:12px}
+.seats{display:flex;gap:8px;margin:16px 0}.seat{flex:1;text-align:center;padding:13px 4px;border-radius:14px;border:1px solid var(--line);background:#fafafa}
+.seat.you{background:var(--accent);color:white}.seat.target{border:2px solid var(--accent)}
+.badge{display:inline-flex;padding:6px 9px;border-radius:999px;background:var(--soft);font-size:12px;font-weight:700}
+.timeline .stop{display:grid;grid-template-columns:22px 1fr auto;gap:10px;padding:9px 0;align-items:center}
+.dot{width:10px;height:10px;border-radius:50%;background:#cbd5e1;margin:auto}.dot.next{background:var(--accent)}
+.hr{height:1px;background:var(--line);margin:12px 0}
+.nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);backdrop-filter:blur(14px);border-top:1px solid var(--line)}
+.navin{max-width:560px;margin:auto;display:grid;grid-template-columns:repeat(5,1fr);padding:7px 8px calc(7px + env(safe-area-inset-bottom))}
+.nav button{border:0;background:none;padding:9px 2px;font-size:11px;color:var(--muted)} .nav button.active{color:var(--ink);font-weight:700}
+.screen{display:none}.screen.active{display:block}
+.notice{background:#fff7ed;color:#7c2d12;padding:12px 14px;border-radius:14px;font-size:13px;line-height:1.5}
+.listitem{padding:12px 0;border-top:1px solid var(--line)} .listitem:first-child{border-top:0}
+.titlebar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<section id="home" class="screen active">
+  <div class="titlebar"><div><h1>SeatMate</h1><div class="small">乗車中アシスタント</div></div><span class="badge">v2</span></div>
+  <div id="noTrip" class="card">
+    <h2>列車を登録</h2>
+    <p class="muted">まず乗車情報を登録してください。スクショOCRは次段階で追加します。</p>
+    <button class="btn primary" onclick="show('register')">登録する</button>
+  </div>
+  <div id="tripHome" style="display:none">
+    <div class="card hero">
+      <div class="row"><div class="grow"><div id="trainName" style="font-size:22px;font-weight:800"></div><div id="route" class="muted"></div></div><span id="serviceBadge" class="badge"></span></div>
+      <div class="seats"><div class="seat you" id="seatYou"></div><div class="seat target" id="seatTarget"></div><div class="seat" id="seatOther"></div></div>
+      <div class="grid2"><div class="kpi"><span class="small">現在</span><b id="currentSection"></b></div><div class="kpi"><span class="small">次駅</span><b id="nextStop"></b></div></div>
+      <div style="height:12px"></div>
+      <button class="btn primary" onclick="show('check')">隣席を確認する</button>
+    </div>
+    <div class="card">
+      <h2>隣席の予測</h2>
+      <div class="row"><span id="lastStatus" class="badge">未確認</span><span id="lastTime" class="small"></span></div>
+      <p id="boardingPrediction" class="muted">まだ推定情報はありません。</p>
+      <button class="btn" onclick="show('ride')">停車駅を見る</button>
+    </div>
+  </div>
+</section>
+
+<section id="register" class="screen">
+  <div class="titlebar"><div><h1>列車登録</h1><div class="small">Ver.1は手入力。OCRは次版で追加。</div></div></div>
+  <div class="card">
+    <div class="field"><label>日付</label><input id="date" type="date"></div>
+    <div class="field"><label>列車名</label><input id="train" value="はくたか562号"></div>
+    <div class="grid2">
+      <div class="field"><label>乗車駅</label><input id="from" value="敦賀"></div>
+      <div class="field"><label>降車駅</label><input id="to" value="東京"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>号車</label><input id="car" value="7"></div>
+      <div class="field"><label>座席</label><input id="seat" value="3A"></div>
+    </div>
+    <div class="field"><label>隣席（自動候補・修正可）</label><input id="neighbor" value="3B"></div>
+    <div class="field"><label>隣席が乗ってきそうな駅（任意）</label><input id="predictedStation" placeholder="例：長野"></div>
+    <button class="btn primary" onclick="saveTrip()">保存する</button>
+  </div>
+</section>
+
+<section id="ride" class="screen">
+  <div class="titlebar"><div><h1>乗車中</h1><div class="small">停車駅タイムライン</div></div></div>
+  <div class="card">
+    <div class="row"><div class="grow"><h2 id="rideTitle"></h2><div class="small">駅名をワンタップでコピーできます。</div></div></div>
+    <div id="stops" class="timeline"></div>
+  </div>
+</section>
+
+<section id="check" class="screen">
+  <div class="titlebar"><div><h1>座席確認</h1><div id="checkTarget" class="small"></div></div></div>
+  <div class="card">
+    <h2>おすすめ公式サービス</h2>
+    <div class="row"><div class="grow"><b id="serviceName"></b><div id="serviceReason" class="small"></div></div></div>
+    <div style="height:12px"></div>
+    <button class="btn primary" onclick="openService()">公式サイトを開く</button>
+  </div>
+  <div class="card">
+    <h2>検索に使う情報</h2>
+    <div id="copyRows"></div>
+  </div>
+  <div class="card">
+    <h2>確認手順</h2>
+    <div id="guide" class="muted" style="line-height:1.8"></div>
+  </div>
+  <div class="card">
+    <h2>確認結果</h2>
+    <div class="grid2">
+      <button class="btn ok" onclick="record('空席')">○ 空席</button>
+      <button class="btn warn" onclick="record('使用不可')">× 使用不可</button>
+    </div>
+    <div style="height:8px"></div>
+    <button class="btn" onclick="record('不明')">? 判断できない</button>
+  </div>
+</section>
+
+<section id="history" class="screen">
+  <div class="titlebar"><div><h1>履歴</h1><div class="small">この端末に保存</div></div></div>
+  <div class="card"><div id="historyList"></div></div>
+</section>
+
+<section id="settings" class="screen">
+  <div class="titlebar"><div><h1>設定</h1><div class="small">通知・データ</div></div></div>
+  <div class="card">
+    <div class="field"><label>乗車予測通知（画面内）</label>
+      <select id="notifyBefore" onchange="saveSettings()">
+        <option value="0">OFF</option><option value="5">5分前</option><option value="10" selected>10分前</option><option value="15">15分前</option>
+      </select>
+    </div>
+    <p class="notice">PWAではiPhoneのバックグラウンド通知に制約があります。ここでは画面を開いている間の通知ロジックを検証します。本番版はSwiftUIのローカル通知へ置き換える想定です。</p>
+    <div class="hr"></div>
+    <button class="btn" onclick="clearAll()">保存データを削除</button>
+  </div>
+</section>
+
+</div>
+
+<div class="nav"><div class="navin">
+<button class="active" onclick="show('home',this)">ホーム</button>
+<button onclick="show('ride',this)">乗車中</button>
+<button onclick="show('check',this)">座席確認</button>
+<button onclick="show('history',this)">履歴</button>
+<button onclick="show('settings',this)">設定</button>
+</div></div>
+
+<script>
+const sampleStops = [
+ ['敦賀','10:58'],['越前たけふ','11:10'],['福井','11:19'],['芦原温泉','11:28'],['加賀温泉','11:37'],
+ ['小松','11:46'],['金沢','11:57'],['新高岡','12:12'],['富山','12:21'],['黒部宇奈月温泉','12:34'],
+ ['糸魚川','12:48'],['上越妙高','13:01'],['長野','13:21'],['高崎','14:03'],['大宮','14:27'],['上野','14:46'],['東京','14:52']
+];
+
+const serviceRules = [
+ {test:/のぞみ|ひかり|こだま|みずほ|さくら|つばめ/i,name:'スマートEX',url:'https://smart-ex.jp/',reason:'東海道・山陽・九州新幹線の座席確認に向く公式サービス'},
+ {test:/はくたか|かがやき|あさま|とき|たにがわ|やまびこ|はやぶさ|こまち|つばさ|なすの/i,name:'えきねっと',url:'https://www.eki-net.com/',reason:'JR東日本系新幹線の指定席・座席表確認に向く公式サービス'},
+ {test:/サンダーバード|しらさぎ|くろしお|やくも|はるか|こうのとり|きのさき|はしだて|まいづる/i,name:'e5489',url:'https://www.jr-odekake.net/goyoyaku/e5489/',reason:'JR西日本エリアの特急予約に向く公式サービス'},
+ {test:/ソニック|にちりん|かもめ|ゆふ|ゆふいんの森|きりしま|みどり|ハウステンボス/i,name:'JR九州ネット予約',url:'https://www.jrkyushu.co.jp/railway/netyoyaku/',reason:'JR九州の新幹線・特急予約に向く公式サービス'}
+];
+
+let trip = JSON.parse(localStorage.getItem('seatmate_trip')||'null');
+let history = JSON.parse(localStorage.getItem('seatmate_history')||'[]');
+let settings = JSON.parse(localStorage.getItem('seatmate_settings')||'{"notifyBefore":10}');
+
+function serviceFor(train){
+  return serviceRules.find(r=>r.test.test(train)) || {name:'JR公式予約サービス',url:'https://www.jreast.co.jp/',reason:'列車に応じた公式予約サービスを確認してください'};
+}
+function calcNeighbor(seat){
+  const m=String(seat).toUpperCase().match(/^(\d+)([A-E])$/); if(!m) return '';
+  const n=m[1], l=m[2]; const map={A:'B',B:'A',C:'B',D:'E',E:'D'}; return n+(map[l]||'');
+}
+function show(id,btn){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(btn){document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));btn.classList.add('active')}
+  render(); window.scrollTo(0,0);
+}
+function copyText(v){navigator.clipboard.writeText(v).then(()=>toast('コピーしました：'+v)).catch(()=>prompt('コピーしてください',v))}
+function toast(msg){alert(msg)}
+function saveTrip(){
+  const s=document.getElementById('seat').value.trim();
+  const n=document.getElementById('neighbor').value.trim() || calcNeighbor(s);
+  trip={date:date.value,train:train.value.trim(),from:from.value.trim(),to:to.value.trim(),car:car.value.trim(),seat:s,neighbor:n,predictedStation:predictedStation.value.trim(),stops:sampleStops};
+  localStorage.setItem('seatmate_trip',JSON.stringify(trip)); show('home');
+}
+function openService(){ if(!trip)return; window.open(serviceFor(trip.train).url,'_blank') }
+function record(status){
+  if(!trip)return;
+  const now=new Date();
+  history.unshift({ts:now.toISOString(),time:now.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}),train:trip.train,seat:trip.neighbor,status});
+  localStorage.setItem('seatmate_history',JSON.stringify(history)); render(); toast('記録しました：'+status);
+}
+function clearAll(){
+  if(confirm('SeatMateの保存データを削除しますか？')){localStorage.clear();trip=null;history=[];location.reload()}
+}
+function saveSettings(){settings.notifyBefore=Number(notifyBefore.value);localStorage.setItem('seatmate_settings',JSON.stringify(settings))}
+function nowMinutes(){let d=new Date();return d.getHours()*60+d.getMinutes()}
+function hmToMin(t){let [h,m]=t.split(':').map(Number);return h*60+m}
+function currentInfo(){
+  if(!trip||!trip.stops?.length)return {section:'-',next:'-'};
+  const now=nowMinutes(); let prev=trip.stops[0], next=trip.stops[trip.stops.length-1];
+  for(let i=0;i<trip.stops.length;i++){ if(hmToMin(trip.stops[i][1])>=now){next=trip.stops[i]; prev=trip.stops[Math.max(0,i-1)]; break;}}
+  return {section:prev[0]+' → '+next[0],next:next[0]+' '+next[1],nextName:next[0],nextTime:next[1]};
+}
+function maybeNotify(){
+  if(!trip||!trip.predictedStation||!settings.notifyBefore)return;
+  const s=trip.stops.find(x=>x[0]===trip.predictedStation); if(!s)return;
+  const diff=hmToMin(s[1])-nowMinutes();
+  const key='notified_'+trip.date+'_'+trip.train+'_'+trip.predictedStation;
+  if(diff>=0 && diff<=settings.notifyBefore && !sessionStorage.getItem(key)){
+    sessionStorage.setItem(key,'1');
+    setTimeout(()=>alert(`${trip.predictedStation}まであと約${diff}分です。\n隣席 ${trip.neighbor} に乗車がある可能性があります。`),300);
+  }
+}
+function render(){
+  noTrip.style.display=trip?'none':'block'; tripHome.style.display=trip?'block':'none';
+  notifyBefore.value=String(settings.notifyBefore||0);
+  if(!trip){historyList.innerHTML='まだ履歴はありません。';return}
+  const svc=serviceFor(trip.train), ci=currentInfo();
+  trainName.textContent='🚄 '+trip.train; route.textContent=trip.from+' → '+trip.to; serviceBadge.textContent=svc.name;
+  seatYou.innerHTML=`${trip.seat}<br><span class="small" style="color:#fff">YOU</span>`;
+  seatTarget.innerHTML=`${trip.neighbor}<br><span class="small">隣席</span>`;
+  seatOther.innerHTML=`—<br><span class="small">同列</span>`;
+  currentSection.textContent=ci.section; nextStop.textContent=ci.next;
+  rideTitle.textContent=trip.train; checkTarget.textContent=`確認対象：${trip.car}号車 ${trip.neighbor}`;
+  serviceName.textContent=svc.name; serviceReason.textContent=svc.reason;
+  const last=history.find(h=>h.train===trip.train && h.seat===trip.neighbor);
+  lastStatus.textContent=last?('前回：'+last.status):'未確認'; lastTime.textContent=last?last.time:'';
+  boardingPrediction.textContent=trip.predictedStation?`${trip.predictedStation}から使用される可能性があります。`:'まだ推定駅は登録されていません。';
+  stops.innerHTML=trip.stops.map(([n,t])=>`<div class="stop"><div class="dot ${n===ci.nextName?'next':''}"></div><div><b>${n}</b><div class="small">${t}</div></div><button class="btn tiny" onclick="copyText('${n}')">コピー</button></div>`).join('');
+  const rows=[['出発駅',ci.nextName||trip.from],['到着駅',trip.to],['日付',trip.date],['時刻',ci.nextTime||''],['列車',trip.train],['確認席',`${trip.car}号車 ${trip.neighbor}`]];
+  copyRows.innerHTML=rows.map(([k,v])=>`<div class="row listitem"><div class="grow"><div class="small">${k}</div><b>${v}</b></div><button class="btn tiny" onclick="copyText('${v}')">コピー</button></div>`).join('');
+  guide.innerHTML = svc.name==='スマートEX' ? '1. スマートEXを開く<br>2. 区間・日時を入力<br>3. 対象列車を選択<br>4. 指定席 → 座席表<br>5. '+trip.car+'号車 '+trip.neighbor+' を確認'
+  : svc.name==='えきねっと' ? '1. えきねっとを開く<br>2. 区間・日時を入力<br>3. '+trip.train+' を選択<br>4. 普通車指定席を選択<br>5. 座席表から '+trip.car+'号車 '+trip.neighbor+' を確認'
+  : '1. 公式予約サイトを開く<br>2. 区間・日時を入力<br>3. 対象列車を選択<br>4. 座席表から '+trip.car+'号車 '+trip.neighbor+' を確認';
+  historyList.innerHTML=history.length?history.map(h=>`<div class="listitem"><b>${h.train}</b><div>${h.time}　${h.seat}：${h.status}</div></div>`).join(''):'まだ履歴はありません。';
+  maybeNotify();
+}
+(function init(){
+  const today=new Date(); const z=n=>String(n).padStart(2,'0');
+  date.value=`${today.getFullYear()}-${z(today.getMonth()+1)}-${z(today.getDate())}`;
+  if(trip){date.value=trip.date||date.value;train.value=trip.train||'';from.value=trip.from||'';to.value=trip.to||'';car.value=trip.car||'';seat.value=trip.seat||'';neighbor.value=trip.neighbor||'';predictedStation.value=trip.predictedStation||''}
+  render();
+})();
+if('serviceWorker'in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{})}
+</script>
+</body>
+</html>
