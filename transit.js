@@ -5,6 +5,8 @@ const ignored=/^(?:停車駅(?:一覧)?|途中停車駅|列車(?:詳細|情報)?
 const normalize=s=>String(s||'').normalize('NFKC').replace(/\r/g,'').replace(/(?<=[一-龠々ヶぁ-んァ-ヶー])[ \t]+(?=[一-龠々ヶぁ-んァ-ヶー])/g,'');
 function tokens(line){const out=[];const re=/(?<!\d)([01]?\d|2[0-3])[:.時]([0-5]\d)分?(?!\d)/g;let m;while((m=re.exec(line))){const before=line.slice(Math.max(0,m.index-4),m.index),after=line.slice(re.lastIndex,re.lastIndex+3);const label=after.match(/^\s*(着|発)/)?.[1]||before.match(/(着|発)\s*$/)?.[1]||null;out.push({value:m[1].padStart(2,'0')+':'+m[2],label});}return out;}
 function nameIn(line){
+ const unread=line.match(/\[未読\d+\]/);if(unread)return unread[0];
+ if(/OCR補正候補|OCR時刻候補|画像の経路/.test(line))return null;
  if(/→|⇒|➡|->/.test(line)||ignored.test(line))return null;
  trainRE.lastIndex=0;if(trainRE.test(line.replace(/\s/g,'')))return null;
  if(/所要|運賃|料金|更新|情報なし|出発済|定刻|CO2|行$/.test(line))return null;
@@ -34,7 +36,7 @@ function parseSingle(raw,year=new Date().getFullYear()){
  commit();
  // Only unknown stand-alone headings with no clock were discarded, while known route rows keep missing times.
  stops=stops.filter(s=>s.arr||s.dep);
- const merged=[];for(const s of stops){const old=merged.find(x=>x.name===s.name);if(old){old.arr=s.arr||old.arr;old.dep=s.dep||old.dep;}else merged.push(s);}
+ const merged=[];for(const s of stops){const old=s.name&&!/^\[未読/.test(s.name)?merged.find(x=>x.name===s.name):null;if(old){old.arr=s.arr||old.arr;old.dep=s.dep||old.dep;}else merged.push(s);}
  stops=merged.length?merged:base.stops;
  const explicitRoute=lines.some(l=>/→|⇒|➡|->/.test(l)&&!(tokens(l).length>=2&&!root.SM.stations.some(n=>l.includes(n))));
  if(stops.length>=2){if(!explicitRoute&&!/乗車駅|出発駅/.test(text))fields.from=stops[0].name;if(!explicitRoute&&!/降車駅|到着駅/.test(text))fields.to=stops.at(-1).name;}
@@ -48,7 +50,7 @@ function parseSingle(raw,year=new Date().getFullYear()){
  return {fields,stops,warnings,trains,blocked:trains.length>1,source:'yahoo-import'};
 }
 // Segment a route at each train heading, sharing the transfer station with distinct arrival/departure clocks.
-function parseTransit(raw,year=new Date().getFullYear()){
+function parseJourney(raw,year=new Date().getFullYear()){
  const text=normalize(raw),lines=text.split('\n');const markers=[];
  lines.forEach((line,index)=>{trainRE.lastIndex=0;const match=[...line.replace(/\s/g,'').matchAll(trainRE)][0];if(match){const train=match[0].replace(/号$/,'')+'号';if(markers.at(-1)?.train!==train)markers.push({index,train});}});
  if(markers.length<2)return parseSingle(text,year);
@@ -79,9 +81,29 @@ function parseTransit(raw,year=new Date().getFullYear()){
  });
  return {...segments[0],segments};
 }
+function parseTransit(raw,year=new Date().getFullYear()){
+ const strict=/乗換|番線|画像の経路/.test(raw),unknown=new Map();let serial=0;
+ const prepared=normalize(raw).split('\n').map(line=>{
+  if(!strict||/OCR補正候補|OCR時刻候補|更新|月\s*\d+\s*日|→|⇒|->/.test(line))return line;
+  trainRE.lastIndex=0;if(trainRE.test(line.replace(/\s/g,'')))return line;
+  const tt=tokens(line);if(!tt.length)return line;
+  if(root.SM.stations.some(n=>line.includes(n))||/\[未読\d+\]/.test(line))return line;
+  const tail=line.replace(/(?<!\d)([01]?\d|2[0-3])[:.時]([0-5]\d)分?(?!\d)/g,'').replace(/[着発\s]/g,'');
+  if(!tail)return line;
+  if(/円|km|CO2|時間|分\)/.test(line))return line;
+  const marker=`[未読${serial++}]`;unknown.set(marker,tail);return line.replace(tail,marker).includes(marker)?line.replace(tail,marker):tt.map(t=>t.value+(t.label||'')).join(' ')+' '+marker;
+ }).join('\n');
+ const result=parseJourney(prepared,year);const all=result.segments||[result];
+ for(const r of all){for(const s of r.stops){if(/^\[未読\d+\]$/.test(s.name)){s.rawName=unknown.get(s.name)||'';s.name='';}}
+  if(/^\[未読\d+\]$/.test(r.fields.from||''))r.fields.from='';if(/^\[未読\d+\]$/.test(r.fields.to||''))r.fields.to='';
+  const count=r.stops.filter(s=>!s.name).length;if(count)r.warnings.push(`${count}駅の駅名を確認できません。時刻付きの空欄を残しました。画像を見て入力してください。`);
+  const corrections=String(raw).split('\n').filter(l=>/^OCR(?:補正|時刻)候補/.test(l));r.warnings.push(...corrections);
+ }
+ return result.segments?{...all[0],segments:all}:result;
+}
 function planStops(old,incoming,mode='replace'){
  const next=mode==='replace'?incoming.map(s=>({...s})):old.map(s=>({...s}));
- if(mode==='merge'){for(let i=0;i<incoming.length;i++){const s=incoming[i],existing=next.find(x=>x.name===s.name);if(existing){if(s.arr)existing.arr=s.arr;if(s.dep)existing.dep=s.dep;}else{const following=incoming.slice(i+1).map(x=>x.name).find(n=>next.some(x=>x.name===n));const preceding=incoming.slice(0,i).reverse().map(x=>x.name).find(n=>next.some(x=>x.name===n));let pos=following?next.findIndex(x=>x.name===following):preceding?next.findIndex(x=>x.name===preceding)+1:next.length;
+ if(mode==='merge'){for(let i=0;i<incoming.length;i++){const s=incoming[i],existing=s.name?next.find(x=>x.name===s.name):null;if(existing){if(s.arr)existing.arr=s.arr;if(s.dep)existing.dep=s.dep;}else{const following=incoming.slice(i+1).map(x=>x.name).find(n=>next.some(x=>x.name===n));const preceding=incoming.slice(0,i).reverse().map(x=>x.name).find(n=>next.some(x=>x.name===n));let pos=following?next.findIndex(x=>x.name===following):preceding?next.findIndex(x=>x.name===preceding)+1:next.length;
  if(!following&&preceding){const tl=root.SM.timeline({date:'2000-01-01',stops:next});let value=root.SM.mins(s.arr||s.dep);const anchor=tl[pos-1];if(value!==null&&anchor?.at!=null){const base=Date.parse('2000-01-01T00:00:00+09:00');let at=base+value*60000;while(at<anchor.at)at+=86400000;while(pos<tl.length&&tl[pos].at!==null&&tl[pos].at<=at)pos++;}}
  next.splice(pos,0,{...s});}}}
  const changes=[];for(const s of next){const before=old.find(x=>x.name===s.name);if(!before)changes.push({type:'追加',name:s.name,before:null,after:s});else if((before.arr||null)!==(s.arr||null)||(before.dep||null)!==(s.dep||null))changes.push({type:'時刻変更',name:s.name,before,after:s});else if(old.findIndex(x=>x.name===s.name)!==next.findIndex(x=>x.name===s.name))changes.push({type:'順序変更',name:s.name,before,after:s});}
