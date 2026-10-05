@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-  <meta name="theme-color" content="#f5f6f3"/>
+  <meta name="theme-color" content="#F5F6F7"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
   <meta name="apple-mobile-web-app-title" content="SeatMate"/>
@@ -19,12 +19,12 @@
     <symbol id="icon-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3.4 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
     <symbol id="icon-history" viewBox="0 0 24 24"><path d="M5.1 8.3A8 8 0 1 1 4 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M4.8 4.8v4.5h4.5M12 7.5V12l3 1.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="10.7" cy="10.7" r="6.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m15.5 15.5 4.2 4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
-    <symbol id="icon-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M19 13.6v-3.2l-2-.6a7.6 7.6 0 0 0-.7-1.6l1-1.9-2.3-2.3-1.9 1a7.6 7.6 0 0 0-1.6-.7L10.9 2H7.7l-.6 2a7.6 7.6 0 0 0-1.6.7l-1.9-1-2.3 2.3 1 1.9a7.6 7.6 0 0 0-.7 1.6l-2 .6v3.2l2 .6a7.6 7.6 0 0 0 .7 1.6l-1 1.9 2.3 2.3 1.9-1a7.6 7.6 0 0 0 1.6.7l.6 2h3.2l.6-2a7.6 7.6 0 0 0 1.6-.7l1.9 1 2.3-2.3-1-1.9a7.6 7.6 0 0 0 .7-1.6l2-.6Z" transform="translate(2.3 1.3) scale(.8)" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+    <symbol id="icon-gear" viewBox="0 0 24 24"><path d="M9.5 3h5l.5 2.2 1.5.9 2.2-.7 2.5 4.3-1.7 1.5v1.6l1.7 1.5-2.5 4.3-2.2-.7-1.5.9-.5 2.2h-5L9 18.8l-1.5-.9-2.2.7-2.5-4.3 1.7-1.5v-1.6L2.8 9.7l2.5-4.3 2.2.7L9 5.2Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
   </defs>
 </svg>
 
 <header class="app-header">
-  <div class="brand"><b>SeatMate</b><small>静かな旅のコックピット</small></div>
+  <div class="brand"><b>SeatMate</b><small>旅と、ひと席。</small></div>
   <button class="icon-button" data-page="settings" aria-label="設定"><svg><use href="#icon-gear"/></svg></button>
 </header>
 
@@ -40,7 +40,7 @@
       <button class="primary" id="start">画像から乗車を登録</button>
     </div>
 
-    <div hidden id="dashboard"><div class="card" id="journeyCard" hidden><h2 id="journeyTitle"></h2><div id="journeyLegs"></div><p id="transferInfo" role="status"></p><button id="boardNext" type="button" class="primary" hidden></button><p class="note">登録時刻表による目安。乗り換えたらボタンで切り替えてください。</p></div>
+    <div hidden id="dashboard">
       <article class="ticket-card journey-ticket">
         <div class="ticket-topline"><span class="ticket-kicker">SEATMATE / JOURNEY</span><small id="tripDate"></small></div>
         <div class="train-meta"><h2 id="trainTitle"></h2><span class="train-type" id="trainTypeLabel">TRAIN</span></div>
@@ -62,26 +62,27 @@
         <p class="schedule-note" id="progressCaption">登録時刻表から算出した進行目安</p>
 
         <div class="cockpit-summary">
-          <div class="next-block"><span class="eyebrow">NEXT</span><strong id="next">—</strong><small id="current"></small></div>
+          <div class="next-block"><span class="eyebrow">次の停車駅</span><strong id="next">—</strong><small id="current"></small></div>
           <div class="time-block"><b id="nextTime">—</b><span id="remaining"></span></div>
         </div>
 
         <div class="context-row">
           <div class="weather-chip" id="weatherCard" hidden><span class="weather-symbol" id="weatherIcon">○</span><div><b id="weatherTemp">—</b><small><span id="weatherStation"></span> <span id="weatherText"></span></small></div></div>
-          <div class="seat-pair"><div><small>YOUR SEAT</small><b id="yourSeat"></b></div><span></span><div><small>NEXT SEAT</small><b id="targetSeat"></b></div></div>
+          <div class="seat-pair"><div><small>号車</small><b id="yourCar"></b></div><div><small>あなたの席</small><b id="yourSeat"></b></div><div><small>隣の席</small><b id="targetSeat"></b></div></div>
         </div>
 
         <div class="prediction-strip" id="predictionStrip"><div><span class="signal-dot"></span><b id="predictionHeadline">乗車駅はまだ推定されていません</b><small id="prediction"></small></div></div>
 
         <div class="calendar-strip">
-          <div><span class="eyebrow">CALENDAR</span><b id="calendarTitle">接近通知</b><small id="calendarStatus">候補駅を採用すると設定できます</small></div>
+          <div><b id="calendarTitle">接近通知</b><small id="calendarStatus">候補駅を採用すると設定できます</small></div>
           <button class="calendar-button" id="calendarNotify" disabled>Googleカレンダー</button>
         </div>
 
-        <button class="primary check-primary" id="goCheck"><svg><use href="#icon-seat"/></svg>隣席を確認する <span>→</span></button>
+        <button class="primary check-primary" id="goCheck">隣席を確認 <span aria-hidden="true">→</span></button>
         <div class="ticket-actions"><button id="showStops" data-page="ride">停車駅</button><button id="updateTimetable">スクショ更新</button><button id="edit">編集</button></div>
         <p class="import-stamp" id="importStamp"></p>
       </article>
+      <div class="card" id="journeyCard" hidden><h2 id="journeyTitle"></h2><div id="journeyLegs"></div><p id="transferInfo" role="status"></p><button id="boardNext" type="button" class="primary" hidden></button><p class="note">登録時刻表による目安。乗り換えたらボタンで切り替えてください。</p></div>
 
       <div class="card next-action" id="nextActionCard"><div class="step">NEXT ACTION</div><h2 id="nextActionTitle">隣席を確認</h2><p id="nextActionText" class="note"></p><button class="primary" id="nextActionButton">隣席を確認する →</button></div>
 
@@ -101,7 +102,7 @@
 
   <section class="screen" id="history"><div class="heading"><div><span class="eyebrow">HISTORY</span><h1>確認履歴</h1></div></div><div class="card"><p class="note">選択中の乗車の履歴です。記録を取り消すと推定を再計算します。</p><div id="historyList"></div></div></section>
 
-  <section class="screen" id="settings"><div class="heading"><div><span class="eyebrow">SETTINGS</span><h1>設定</h1></div><button class="secondary compact" data-page="home">戻る</button></div><div class="card"><h2>Googleカレンダー通知</h2><p>乗車候補駅を採用すると、指定した分数前の予定をGoogleカレンダーに事前入力できます。SeatMateはGoogleアカウントやパスワードを保持しません。</p><p class="note">通知を受けるにはGoogleカレンダー側の通知を有効にしてください。</p></div><div class="card"><h2>ログインID</h2><p>必要なサービスだけ、この端末に保存できます。パスワードの保存・入力機能はありません。</p><label for="loginService">サービス</label><select id="loginService"></select><label for="loginId">ログインID（任意）</label><input autocomplete="off" id="loginId"/><label class="checklabel"><input id="rememberId" type="checkbox"/>この端末にIDを保存する</label><button class="primary" id="saveLogin">IDの設定を保存</button></div><div class="card"><h2>アプリ表示中の案内</h2><p>SeatMateを表示している間は、候補駅への接近を画面内でも案内します。</p><button class="secondary" id="enableNotification">システム通知を許可</button><p class="note" id="notificationStatus"></p></div><div class="card"><h2>データ</h2><p>乗車・履歴・任意のIDは端末内に保存します。有料API・専用サーバーは不要です。</p><button class="secondary" id="export">バックアップをダウンロード</button><label for="restore">バックアップから復元</label><input accept="application/json,.json" id="restore" type="file"/><button class="danger" id="clear">SeatMateの保存データを削除</button><p class="note">天気データ: Open-Meteo (CC BY 4.0)</p><p class="note version-note">SeatMate v19 · 乗換対応</p></div></section>
+  <section class="screen" id="settings"><div class="heading"><div><span class="eyebrow">SETTINGS</span><h1>設定</h1></div><button class="secondary compact" data-page="home">戻る</button></div><div class="card"><h2>Googleカレンダー通知</h2><p>乗車候補駅を採用すると、指定した分数前の予定をGoogleカレンダーに事前入力できます。SeatMateはGoogleアカウントやパスワードを保持しません。</p><p class="note">通知を受けるにはGoogleカレンダー側の通知を有効にしてください。</p></div><div class="card"><h2>ログインID</h2><p>必要なサービスだけ、この端末に保存できます。パスワードの保存・入力機能はありません。</p><label for="loginService">サービス</label><select id="loginService"></select><label for="loginId">ログインID（任意）</label><input autocomplete="off" id="loginId"/><label class="checklabel"><input id="rememberId" type="checkbox"/>この端末にIDを保存する</label><button class="primary" id="saveLogin">IDの設定を保存</button></div><div class="card"><h2>アプリ表示中の案内</h2><p>SeatMateを表示している間は、候補駅への接近を画面内でも案内します。</p><button class="secondary" id="enableNotification">システム通知を許可</button><p class="note" id="notificationStatus"></p></div><div class="card"><h2>データ</h2><p>乗車・履歴・任意のIDは端末内に保存します。有料API・専用サーバーは不要です。</p><button class="secondary" id="export">バックアップをダウンロード</button><label for="restore">バックアップから復元</label><input accept="application/json,.json" id="restore" type="file"/><button class="danger" id="clear">SeatMateの保存データを削除</button><p class="note">天気データ: Open-Meteo (CC BY 4.0)</p><p class="note version-note">SeatMate v20 · Blue Grey</p></div></section>
 </main>
 
 <nav aria-label="メインメニュー" class="bottom-nav">
