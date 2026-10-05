@@ -1,0 +1,1 @@
+{"name":"seatmate","version":"19.0.0","private":true,"scripts":{"test":"node --test tests/core.test.js tests/transit.test.js tests/transfer.test.js","test:browser":"node tests/batch.test.js && node tests/batch-limits.test.js && node tests/wizard.test.js"},"devDependencies":{"playwright":"1.62.1"}}

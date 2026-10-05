@@ -49,3 +49,5 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 @media (max-width:390px){.journey-ticket{padding-left:17px;padding-right:17px}.next-block strong{font-size:37px}.context-row{grid-template-columns:1fr}.weather-chip small{max-width:200px}.train-marker{width:72px}.ticket-actions button{font-size:10px}.cockpit-summary{gap:10px}.time-block b{font-size:22px}}
 @media (prefers-reduced-motion:reduce){.train-marker,.rail-done{transition:none!important}.primary:active{transform:none}}
+
+#journeyCard{border:1px solid #95c9c1;background:#f2f9f7}#journeyLegs button{text-align:left;line-height:1.6}#journeyLegs button.selected{background:#127e76;color:#fff}#transferInfo{font-weight:650;line-height:1.8}#batchBanner{border-left:4px solid #127e76}#batchStart{margin:14px 0}#batchProgress{line-height:1.8}#batchBack{margin-top:8px}
